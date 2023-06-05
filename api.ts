@@ -192,6 +192,14 @@ app.post(
 
       const job = await queue.add(model, payload, {
         delay: delay,
+        removeOnComplete: {
+          age: 300,
+          count: 100
+        },
+        removeOnFail: {
+          age: 300,
+          count: 100
+        }
       });
       return res.status(201).send(job.id);
     } catch (error: any) {
