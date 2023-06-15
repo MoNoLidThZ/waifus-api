@@ -4,6 +4,7 @@ dotenv.config();
 import { Queue } from "bullmq";
 import * as bodyParser from "body-parser";
 import cors from "cors";
+import mysql from "mysql2";
 
 const app = express();
 const jsonParser = bodyParser.json();
@@ -20,9 +21,25 @@ const port = process.env.API_PORT;
 const delay = Number(process.env.DELAY);
 const steps = Number(process.env.STEPS);
 const limit = Number(process.env.LIMIT);
+const mysqlUrl = process.env.MYSQL_URL;
+const mysqlPort = Number(process.env.MYSQL_PORT);
+const mysqlUser = process.env.MYSQL_USER;
+const mysqlPass = process.env.MYSQL_PASS;
+const mysqlDatabase = process.env.MYSQL_DATABASE;
+
+/// mysql
+const connection = mysql
+  .createConnection({
+    host: mysqlUrl,
+    port: mysqlPort,
+    user: mysqlUser,
+    password: mysqlPass,
+    database: mysqlDatabase,
+    rowsAsArray: true,
+  })
+  .promise();
 
 /// queues
-
 const anythingQueue = new Queue("anything", {
   connection: {
     host: redisUrl,
@@ -83,6 +100,33 @@ const defaults: any = {
   },
 };
 
+async function getCountPeriod(period: string) {
+  let end = new Date().setMinutes(60, 0, 0) / 1e3;
+  let start;
+  switch (period) {
+    case "hour":
+      start = end - 3600;
+      break;
+    case "day":
+      start = end - 86400;
+      break;
+    case "week":
+      start = end - 604800;
+      break;
+    default:
+      return null;
+  }
+  const query = await connection.query(
+    `
+    select sum(count)
+    from counter 
+    where hour > (?) AND hour <= (?)
+  `,
+    [start, end]
+  );
+  return query[0][0][0];
+}
+
 function getQueue(model: string): Queue | null {
   switch (model) {
     case "anything":
@@ -99,6 +143,24 @@ function getQueue(model: string): Queue | null {
 app.get("/", (req: Request, res: Response, next: NextFunction) => {
   return res.status(200).send("API is Active");
 });
+
+app.get(
+  "/job/count",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const promises = Promise.all([
+        getCountPeriod("hour"),
+        getCountPeriod("day"),
+        getCountPeriod("week"),
+      ]);
+
+      const [hour, day, week] = await promises;
+      return res.status(200).send({ hour, day, week });
+    } catch (error: any) {
+      return res.status(500).send(error.message);
+    }
+  }
+);
 
 app.get(
   "/job/queue/:model",
@@ -146,7 +208,21 @@ app.get(
       const state = await queue.getJobState(id);
       if (state !== "completed") return res.sendStatus(400);
       const result = await queue.getJob(id);
-      return res.status(200).send(result.returnvalue);
+      try {
+        const currentHour = new Date().setMinutes(60, 0, 0) / 1e3;
+        await connection.query(
+          `
+          INSERT INTO counter (hour, count)
+          VALUES (?,?)
+          ON DUPLICATE KEY UPDATE
+          COUNT = COUNT + 1
+          `,
+          [currentHour, 1]
+        );
+        return res.status(200).send(result.returnvalue);
+      } catch (error) {
+        return res.status(200).send(result.returnvalue);
+      }
     } catch (error: any) {
       return res.status(500).send(error.message);
     }
@@ -194,12 +270,12 @@ app.post(
         delay: delay,
         removeOnComplete: {
           age: 600,
-          count: 500
+          count: 500,
         },
         removeOnFail: {
           age: 600,
-          count: 500
-        }
+          count: 500,
+        },
       });
       return res.status(201).send(job.id);
     } catch (error: any) {
