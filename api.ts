@@ -208,21 +208,7 @@ app.get(
       const state = await queue.getJobState(id);
       if (state !== "completed") return res.sendStatus(400);
       const result = await queue.getJob(id);
-      try {
-        const currentHour = new Date().setMinutes(60, 0, 0) / 1e3;
-        await connection.query(
-          `
-          INSERT INTO counter (hour, count)
-          VALUES (?,?)
-          ON DUPLICATE KEY UPDATE
-          COUNT = COUNT + 1
-          `,
-          [currentHour, 1]
-        );
-        return res.status(200).send(result.returnvalue);
-      } catch (error) {
-        return res.status(200).send(result.returnvalue);
-      }
+      return res.status(200).send(result.returnvalue);
     } catch (error: any) {
       return res.status(500).send(error.message);
     }
@@ -277,7 +263,22 @@ app.post(
           count: 500,
         },
       });
-      return res.status(201).send(job.id);
+
+      try {
+        const currentHour = new Date().setMinutes(60, 0, 0) / 1e3;
+        await connection.query(
+          `
+          INSERT INTO counter (hour, count)
+          VALUES (?,?)
+          ON DUPLICATE KEY UPDATE
+          COUNT = COUNT + 1
+          `,
+          [currentHour, 1]
+        );
+        return res.status(201).send(job.id);
+      } catch (error) {
+        return res.status(201).send(job.id);
+      }
     } catch (error: any) {
       return res.status(500).send(error.message);
     }
