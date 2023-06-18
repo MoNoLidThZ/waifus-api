@@ -236,7 +236,6 @@ app.post(
       const cfg_scale = req.body.cfg_scale;
       const denoising_strength = req.body.denoising_strength;
       const seed = req.body.seed;
-      const session = req.body.session;
       if (positive) {
         payload.prompt += `, ${positive.toString()}`;
       }
@@ -275,18 +274,6 @@ app.post(
           `,
           [currentHour, 1]
         );
-
-        if (session) {
-          await connection.query(
-            `
-            INSERT INTO session (id, count)
-            VALUES (?,?)
-            ON DUPLICATE KEY UPDATE
-            COUNT = COUNT + 1
-            `,
-            [session, 1]
-          );
-        }
 
         return res.status(201).send(job.id);
       } catch (error) {
