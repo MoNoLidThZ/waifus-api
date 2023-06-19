@@ -278,7 +278,7 @@ app.post(
       });
 
       try {
-        const currentHour = new Date().setMinutes(60, 0, 0) / 1e3;
+        const currentHour = new Date().setUTCMinutes(60, 0, 0) / 1e3;
         await connection.query(
           `
           INSERT INTO counter (hour, count)
