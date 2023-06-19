@@ -129,12 +129,11 @@ async function getCountPeriod(period: string) {
     default:
       return null;
   }
-
   const query = await connection.query(
     `
     select sum(count)
     from counter 
-    where hour >= (?) AND hour <= (?)
+    where hour > (?) AND hour <= (?)
   `,
     [start, end]
   );
