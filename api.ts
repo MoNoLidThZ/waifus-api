@@ -5,13 +5,19 @@ import { Queue } from "bullmq";
 import * as bodyParser from "body-parser";
 import cors from "cors";
 import mysql from "mysql2";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
 
+/// Set up express stuff
 const app = express();
 const jsonParser = bodyParser.json();
 const options: cors.CorsOptions = {
   origin: "*",
 };
 app.use(cors(options));
+
+/// Set UTC time
+dayjs.extend(utc);
 
 /// env variables
 const redisUrl = process.env.REDIS_URL;
@@ -101,21 +107,29 @@ const defaults: any = {
 };
 
 async function getCountPeriod(period: string) {
-  let end = new Date().setMinutes(60, 0, 0) / 1e3;
+  const now = new Date();
+  let end;
   let start;
   switch (period) {
     case "hour":
+      end = now.setUTCMinutes(60, 0, 0) / 1e3;
       start = end - 3600;
       break;
     case "day":
+      end = now.setUTCHours(24, 0, 0, 0) / 1e3;
       start = end - 86400;
       break;
     case "week":
+      end =
+        Number(
+          dayjs().utc().day(7).hour(0).minute(0).second(0).millisecond(0)
+        ) / 1e3;
       start = end - 604800;
       break;
     default:
       return null;
   }
+
   const query = await connection.query(
     `
     select sum(count)
