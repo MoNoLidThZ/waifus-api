@@ -134,7 +134,7 @@ async function getCountPeriod(period: string) {
     `
     select sum(count)
     from counter 
-    where hour > (?) AND hour <= (?)
+    where hour >= (?) AND hour <= (?)
   `,
     [start, end]
   );
