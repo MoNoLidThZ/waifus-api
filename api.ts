@@ -114,6 +114,8 @@ const defaults: any = {
     enable_hr: "True",
     hr_scale: "2.0",
     hr_upscaler: "Latent",
+    hr_resize_x: "1024",
+    hr_resize_y: "1024",
   },
   nemu: {
     prompt: "masterpiece, best quality, ultra-detailed, absurdres",
@@ -128,6 +130,8 @@ const defaults: any = {
     enable_hr: "True",
     hr_scale: "2.0",
     hr_upscaler: "Latent",
+    hr_resize_x: "1024",
+    hr_resize_y: "1024",
   },
 };
 
