@@ -70,6 +70,14 @@ const counterfeitQueue = new Queue("counterfeit", {
   },
 });
 
+const nemuQueue = new Queue("nemu", {
+  connection: {
+    host: redisUrl,
+    port: redisPort,
+    password: redisPass,
+  },
+});
+
 const defaults: any = {
   anything: {
     prompt: "masterpiece, best quality",
@@ -101,6 +109,17 @@ const defaults: any = {
     steps: steps,
     cfg_scale: 10,
     sd_model_checkpoint: "counterfeit-v2.5.safetensors",
+    denoising_strength: 0.5,
+    seed: -1,
+  },
+  nemu: {
+    prompt: "masterpiece, best quality, ultra-detailed, absurdres",
+    negative_prompt:
+      "lowres, ((bad anatomy)), ((bad hands)), text, missing finger, extra digits, fewer digits, blurry, ((mutated hands and fingers)), (poorly drawn face), ((mutation)), ((deformed face)), (ugly), ((bad proportions)), ((extra limbs)), extra face, (double head), (extra head), ((extra feet)), monster, logo, cropped, worst quality, low quality, normal quality, jpeg, humpbacked, long body, long neck, ((jpeg artifacts)), signature, watermark",
+    sampler_index: "DPM++ 2M Karras",
+    steps: steps,
+    cfg_scale: 10,
+    sd_model_checkpoint: "nemu-2.safetensors",
     denoising_strength: 0.5,
     seed: -1,
   },
@@ -148,6 +167,8 @@ function getQueue(model: string): Queue | null {
       return aomQueue;
     case "counterfeit":
       return counterfeitQueue;
+    case "nemu":
+      return nemuQueue;
     default:
       return null;
   }
