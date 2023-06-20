@@ -111,6 +111,7 @@ const defaults: any = {
     sd_model_checkpoint: "counterfeit-v2.5.safetensors",
     denoising_strength: 0.5,
     seed: -1,
+    enable_hr: true,
   },
   nemu: {
     prompt: "masterpiece, best quality, ultra-detailed, absurdres",
@@ -122,6 +123,7 @@ const defaults: any = {
     sd_model_checkpoint: "nemu-2.safetensors",
     denoising_strength: 0.5,
     seed: -1,
+    enable_hr: true,
   },
 };
 
