@@ -141,7 +141,7 @@ async function getCountPeriod(period: string) {
     case "week":
       end =
         Number(
-          dayjs().utc().day(8).hour(0).minute(0).second(0).millisecond(0)
+          dayjs().utc().day(7).hour(0).minute(0).second(0).millisecond(0)
         ) / 1e3;
       start = end - 604800;
       break;
