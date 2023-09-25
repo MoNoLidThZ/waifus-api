@@ -271,10 +271,10 @@ app.post(
       const denoising_strength = req.body.denoising_strength;
       const seed = req.body.seed;
       if (positive) {
-        payload.prompt += `, ${positive.toString()}`;
+        payload.prompt += `, ${positive.toString()}`.substring(0,500);
       }
       if (negative_prompt) {
-        payload.negative_prompt += `, ${negative_prompt.toString()}`;
+        payload.negative_prompt += `, ${negative_prompt.toString()}`.substring(0,500);
       }
       if (cfg_scale) {
         payload.cfg_scale = cfg_scale;
